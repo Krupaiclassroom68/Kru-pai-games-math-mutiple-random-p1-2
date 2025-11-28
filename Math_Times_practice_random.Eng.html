@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Random Multiplication Drill · Kru Pai Classroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Confetti (if offline, game still works – just no confetti) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: #ffffff;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .app {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      border-radius: 16px;
+      padding: 24px 20px 28px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+      border: 1px solid #f1f1f1;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.8rem;
+      color: #e53935;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #555;
+      margin-bottom: 18px;
+    }
+    .kp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #ffcdd2;
+      background: #ffebee;
+      color: #c62828;
+      font-size: 0.8rem;
+      margin-bottom: 20px;
+    }
+    .kp-badge span.logo {
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 2px 6px;
+      background: #ffffff;
+      border: 1px solid #ffcdd2;
+    }
+    .hidden { display: none; }
+
+    .player-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .player-name-label {
+      font-weight: 600;
+      color: #c62828;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background: #e53935; color: #fff; }
+    .btn-primary:hover { background: #d32f2f; }
+    .btn-outline {
+      background: #ffffff;
+      color: #e53935;
+      border: 1px solid #ffcdd2;
+    }
+    .btn-outline:hover { background: #ffebee; }
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #666;
+      transition: all 0.15s ease;
+    }
+    .btn-ghost:hover { background: #f5f5f5; }
+
+    .small-note {
+      font-size: 0.8rem;
+      color: #777;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* NAME VIEW */
+    #nameView h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: #e53935;
+    }
+    .name-form {
+      max-width: 360px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .name-form label {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .name-form input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #e0e0e0;
+      font-size: 1rem;
+      text-align: center;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .name-form input:focus {
+      border-color: #ef5350;
+      box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.16);
+    }
+
+    /* SET SELECT */
+    .set-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .set-btn {
+      border-radius: 14px;
+      padding: 12px 10px;
+      border: 1px solid #ffcdd2;
+      background: #fff5f5;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .set-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(229, 57, 53, 0.18);
+      border-color: #ef5350;
+    }
+    .set-name {
+      font-weight: 700;
+      color: #c62828;
+    }
+    .set-score {
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .progress-box {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #fafafa;
+      border: 1px dashed #ef9a9a;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    /* CHECKLIST */
+    #setChecklistView h2,
+    #gameView h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 6px;
+      color: #e53935;
+    }
+    .back-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 10px;
+    }
+    #currentSetLabel,
+    #currentGameLabel {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    #currentGameLabel { margin-bottom: 14px; }
+
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .game-btn {
+      border-radius: 12px;
+      padding: 10px 8px;
+      border: 1px solid #ffcdd2;
+      background: #ffffff;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .game-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(229, 57, 53, 0.18);
+      border-color: #ef5350;
+    }
+    .game-btn span.status {
+      font-size: 0.8rem;
+      color: #777;
+      font-weight: 500;
+    }
+    .game-btn.completed {
+      background: #e8f5e9;
+      border-color: #66bb6a;
+      color: #1b5e20;
+    }
+    .game-btn.completed span.status {
+      color: #2e7d32;
+    }
+
+    /* GAME VIEW */
+    .equation-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px 12px;
+      margin-bottom: 14px;
+    }
+    .equation-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: #fafafa;
+      border: 1px solid #f1f1f1;
+    }
+    .eq-text {
+      white-space: nowrap;
+      font-size: 0.95rem;
+    }
+    .eq-input {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+    .eq-input input {
+      width: 100%;
+      padding: 6px 30px 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      font-size: 0.95rem;
+      text-align: center;
+      outline: none;
+    }
+    .eq-input input:focus {
+      border-color: #ef5350;
+      box-shadow: 0 0 0 2px rgba(239, 83, 80, 0.16);
+    }
+    .result-icon {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1rem;
+    }
+    .result-icon.correct { color: #2e7d32; }
+    .result-icon.wrong { color: #c62828; }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+      justify-content: center;
+    }
+
+    .score-box {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
+    }
+    .message {
+      text-align: center;
+      font-size: 0.95rem;
+      margin-top: 4px;
+      min-height: 1.2em;
+    }
+    .message.success { color: #2e7d32; }
+    .message.error { color: #c62828; }
+
+    .footer-note {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      text-align: center;
+      color: #888;
+    }
+
+    @media (max-width: 600px) {
+      .app { padding: 18px 14px 22px; }
+      h1 { font-size: 1.4rem; }
+      .equation-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Random Multiplication Drill</h1>
+    <div class="subtitle">5 Sets · 132 questions per set · Kru Pai Classroom</div>
+    <div class="kp-badge">
+      <span class="logo">KP</span> Fast Multiplication Practice
+    </div>
+
+    <!-- PLAYER BAR -->
+    <div class="player-bar" id="playerBar">
+      <div>Player: <span class="player-name-label" id="playerNameDisplay">-</span></div>
+      <button class="btn-ghost" id="changeNameBtn">Change player name</button>
+    </div>
+
+    <!-- VIEW: ENTER NAME -->
+    <div id="nameView">
+      <h2>Enter your name to get started</h2>
+      <div class="name-form">
+        <label for="playerNameInput">Player name</label>
+        <input id="playerNameInput" type="text" placeholder="e.g. Alex, Mia, Ben" />
+        <button class="btn-primary" id="startWithNameBtn">Start</button>
+        <div class="small-note">
+          This name will appear on the checklist and score screens so you can see whose progress it is 😊
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: SELECT SET A–E -->
+    <div id="setSelectView" class="hidden">
+      <div class="progress-box" id="setSummaryText">
+        Choose a set and start your multiplication practice ✨
+      </div>
+      <div class="set-grid" id="setButtons">
+        <!-- Created by JS -->
+      </div>
+      <div class="small-note">
+        Each set has 11 games · 12 questions per game · 132 points total
+      </div>
+    </div>
+
+    <!-- VIEW: CHECKLIST FOR ONE SET -->
+    <div id="setChecklistView" class="hidden">
+      <div class="back-row">
+        <button class="btn-ghost" id="backToSetSelect">&larr; Back to set selection</button>
+      </div>
+      <h2 id="setTitle">Set A</h2>
+      <div id="currentSetLabel"></div>
+      <div class="progress-box" id="setProgressBox"></div>
+
+      <div class="game-grid" id="gameButtons">
+        <!-- Created by JS -->
+      </div>
+      <div class="small-note">
+        Each game has 12 questions. The highest score for each game is saved automatically.
+      </div>
+    </div>
+
+    <!-- VIEW: GAME (12 RANDOM QUESTIONS) -->
+    <div id="gameView" class="hidden">
+      <div class="back-row">
+        <button class="btn-ghost" id="backToChecklist">&larr; Back to checklist</button>
+      </div>
+      <h2 id="gameTitle">Game 1</h2>
+      <div id="currentGameLabel"></div>
+
+      <div class="equation-list" id="equationList">
+        <!-- Questions created by JS -->
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary" id="checkBtn">Check answers</button>
+        <button class="btn-outline" id="resetBtn">New random set</button>
+      </div>
+
+      <div class="score-box" id="scoreBox">Not checked yet</div>
+      <div class="message" id="messageBox"></div>
+
+      <div class="footer-note">
+        The game saves your best score for this game. Try again and beat your own record! 😊
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SETS = ["A", "B", "C", "D", "E"];
+    const GAMES_PER_SET = 11;
+    const QUESTIONS_PER_GAME = 12;
+    const STORAGE_PREFIX = "kp_mul_random_EN_";
+    const PLAYER_NAME_KEY = STORAGE_PREFIX + "player_name";
+
+    // DOM
+    const nameView = document.getElementById("nameView");
+    const playerBar = document.getElementById("playerBar");
+    const playerNameDisplay = document.getElementById("playerNameDisplay");
+    const playerNameInput = document.getElementById("playerNameInput");
+    const startWithNameBtn = document.getElementById("startWithNameBtn");
+    const changeNameBtn = document.getElementById("changeNameBtn");
+
+    const setSelectView = document.getElementById("setSelectView");
+    const setChecklistView = document.getElementById("setChecklistView");
+    const gameView = document.getElementById("gameView");
+
+    const setSummaryText = document.getElementById("setSummaryText");
+    const setButtonsContainer = document.getElementById("setButtons");
+
+    const setTitle = document.getElementById("setTitle");
+    const currentSetLabel = document.getElementById("currentSetLabel");
+    const setProgressBox = document.getElementById("setProgressBox");
+    const gameButtonsContainer = document.getElementById("gameButtons");
+    const backToSetSelectBtn = document.getElementById("backToSetSelect");
+
+    const gameTitle = document.getElementById("gameTitle");
+    const currentGameLabel = document.getElementById("currentGameLabel");
+    const equationList = document.getElementById("equationList");
+    const checkBtn = document.getElementById("checkBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const backToChecklistBtn = document.getElementById("backToChecklist");
+    const scoreBox = document.getElementById("scoreBox");
+    const messageBox = document.getElementById("messageBox");
+
+    let currentSet = null;     // "A".."E"
+    let currentGame = null;    // 1..11
+    let currentQuestions = []; // [{a,b,answer}]
+
+    // -------- PLAYER NAME --------
+    function showNameView() {
+      nameView.classList.remove("hidden");
+      setSelectView.classList.add("hidden");
+      setChecklistView.classList.add("hidden");
+      gameView.classList.add("hidden");
+      playerBar.classList.add("hidden");
+      playerNameInput.focus();
+    }
+
+    function showMainViews() {
+      nameView.classList.add("hidden");
+      setSelectView.classList.remove("hidden");
+      playerBar.classList.remove("hidden");
+      buildSetButtons();
+    }
+
+    function loadPlayerName() {
+      const name = localStorage.getItem(PLAYER_NAME_KEY);
+      if (name && name.trim() !== "") {
+        playerNameDisplay.textContent = name;
+        return name;
+      }
+      return null;
+    }
+
+    function savePlayerName(name) {
+      localStorage.setItem(PLAYER_NAME_KEY, name);
+      playerNameDisplay.textContent = name;
+    }
+
+    // -------- STORAGE HELPERS --------
+    function storageKey(setId, gameIndex) {
+      return STORAGE_PREFIX + setId + "_game_" + gameIndex;
+    }
+
+    function getGameBestScore(setId, gameIndex) {
+      const val = localStorage.getItem(storageKey(setId, gameIndex));
+      return val ? Number(val) : 0;
+    }
+
+    function setGameBestScore(setId, gameIndex, score) {
+      const key = storageKey(setId, gameIndex);
+      const current = getGameBestScore(setId, gameIndex);
+      if (score > current) {
+        localStorage.setItem(key, String(score));
+      }
+    }
+
+    function getSetTotalScore(setId) {
+      let total = 0;
+      for (let i = 1; i <= GAMES_PER_SET; i++) {
+        total += getGameBestScore(setId, i);
+      }
+      return total;
+    }
+
+    function getCompletedGamesCount(setId) {
+      let count = 0;
+      for (let i = 1; i <= GAMES_PER_SET; i++) {
+        if (getGameBestScore(setId, i) === QUESTIONS_PER_GAME) {
+          count++;
+        }
+      }
+      return count;
+    }
+
+    // -------- VIEW: SET SELECT --------
+    function buildSetButtons() {
+      setButtonsContainer.innerHTML = "";
+      let overallPlayed = 0;
+
+      SETS.forEach((setId) => {
+        const totalScore = getSetTotalScore(setId);
+        if (totalScore > 0) overallPlayed++;
+
+        const btn = document.createElement("button");
+        btn.classList.add("set-btn");
+
+        const nameSpan = document.createElement("div");
+        nameSpan.classList.add("set-name");
+        nameSpan.textContent = "Set " + setId;
+
+        const scoreSpan = document.createElement("div");
+        scoreSpan.classList.add("set-score");
+        if (totalScore === 0) {
+          scoreSpan.textContent = "Not started · 0 / 132 points";
+        } else {
+          scoreSpan.textContent = "Total score: " + totalScore + " / 132";
+        }
+
+        btn.appendChild(nameSpan);
+        btn.appendChild(scoreSpan);
+        btn.addEventListener("click", () => openSetChecklist(setId));
+
+        setButtonsContainer.appendChild(btn);
+      });
+
+      const playerName = loadPlayerName() || "-";
+      if (overallPlayed === 0) {
+        setSummaryText.textContent =
+          "Player: " + playerName + " · No sets played yet. Try starting with Set A ✨";
+      } else {
+        setSummaryText.textContent =
+          "Player: " +
+          playerName +
+          " · You've played " +
+          overallPlayed +
+          " / " +
+          SETS.length +
+          " sets. Try to complete them all 💪";
+      }
+    }
+
+    function openSetSelect() {
+      setSelectView.classList.remove("hidden");
+      setChecklistView.classList.add("hidden");
+      gameView.classList.add("hidden");
+      currentSet = null;
+      currentGame = null;
+      buildSetButtons();
+    }
+
+    // -------- VIEW: SET CHECKLIST --------
+    function openSetChecklist(setId) {
+      currentSet = setId;
+      setSelectView.classList.add("hidden");
+      setChecklistView.classList.remove("hidden");
+      gameView.classList.add("hidden");
+
+      setTitle.textContent = "Set " + setId;
+      const total = getSetTotalScore(setId);
+      const playerName = loadPlayerName() || "-";
+      currentSetLabel.textContent =
+        "Player: " + playerName + " · Total score for this set: " + total + " / 132";
+
+      const completedGames = getCompletedGamesCount(setId);
+      if (completedGames === GAMES_PER_SET) {
+        setProgressBox.textContent =
+          "Awesome! You have completed all 11 games in Set " + setId + " 🎉";
+      } else {
+        setProgressBox.textContent =
+          "Perfect scores in " +
+          completedGames +
+          " / " +
+          GAMES_PER_SET +
+          " games. Keep going! ✨";
+      }
+
+      buildGameButtonsForSet(setId);
+    }
+
+    function buildGameButtonsForSet(setId) {
+      gameButtonsContainer.innerHTML = "";
+      for (let i = 1; i <= GAMES_PER_SET; i++) {
+        const best = getGameBestScore(setId, i);
+        const btn = document.createElement("button");
+        btn.classList.add("game-btn");
+        if (best === QUESTIONS_PER_GAME) {
+          btn.classList.add("completed");
+        }
+
+        const title = document.createElement("div");
+        title.textContent = "Game " + i;
+
+        const status = document.createElement("span");
+        status.classList.add("status");
+        if (best === 0) {
+          status.textContent = "Not started · 0 / 12";
+        } else if (best === QUESTIONS_PER_GAME) {
+          status.textContent = "Perfect · 12 / 12";
+        } else {
+          status.textContent = "Best score: " + best + " / 12";
+        }
+
+        btn.appendChild(title);
+        btn.appendChild(status);
+        btn.addEventListener("click", () => startGame(i));
+
+        gameButtonsContainer.appendChild(btn);
+      }
+    }
+
+    // -------- VIEW: GAME (12 QUESTIONS) --------
+    function startGame(gameIndex) {
+      currentGame = gameIndex;
+      setChecklistView.classList.add("hidden");
+      gameView.classList.remove("hidden");
+
+      gameTitle.textContent = "Set " + currentSet + " · Game " + gameIndex;
+      const playerName = loadPlayerName() || "-";
+      currentGameLabel.textContent =
+        "Player: " + playerName + " · Answer all 12 multiplication questions";
+
+      generateQuestions();
+      renderQuestions();
+      clearGameFeedback();
+    }
+
+    function generateQuestions() {
+      currentQuestions = [];
+      const used = new Set();
+      while (currentQuestions.length < QUESTIONS_PER_GAME) {
+        const a = Math.floor(Math.random() * 11) + 2; // 2–12
+        const b = Math.floor(Math.random() * 12) + 1; // 1–12
+        const key = a + "x" + b;
+        if (used.has(key)) continue;
+        used.add(key);
+        currentQuestions.push({ a, b, answer: a * b });
+      }
+    }
+
+    function renderQuestions() {
+      equationList.innerHTML = "";
+      currentQuestions.forEach((q, index) => {
+        const item = document.createElement("div");
+        item.classList.add("equation-item");
+
+        const eqText = document.createElement("div");
+        eqText.classList.add("eq-text");
+        eqText.textContent =
+          (index + 1) + ". " + q.a + " × " + q.b + " =";
+
+        const inputWrapper = document.createElement("div");
+        inputWrapper.classList.add("eq-input");
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.inputMode = "numeric";
+        input.dataset.answer = q.answer;
+
+        const icon = document.createElement("span");
+        icon.classList.add("result-icon");
+        icon.textContent = "";
+
+        inputWrapper.appendChild(input);
+        inputWrapper.appendChild(icon);
+        item.appendChild(eqText);
+        item.appendChild(inputWrapper);
+        equationList.appendChild(item);
+      });
+    }
+
+    function clearGameFeedback() {
+      const inputs = equationList.querySelectorAll("input");
+      inputs.forEach((inp) => {
+        inp.value = "";
+        const icon = inp.parentElement.querySelector(".result-icon");
+        icon.textContent = "";
+        icon.classList.remove("correct", "wrong");
+      });
+      scoreBox.textContent = "Not checked yet";
+      messageBox.textContent = "";
+      messageBox.className = "message";
+    }
+
+    function fireSmallConfetti() {
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.7 }
+        });
+      }
+    }
+
+    function fireBigConfetti() {
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 260,
+          spread: 120,
+          origin: { y: 0.8 },
+          colors: ['#f44336', '#ffeb3b', '#4caf50', '#2196f3']
+        });
+      }
+    }
+
+    function checkAnswers() {
+      const inputs = equationList.querySelectorAll("input");
+      let correctCount = 0;
+
+      inputs.forEach((inp) => {
+        const expected = Number(inp.dataset.answer);
+        const given = Number(inp.value);
+        const icon = inp.parentElement.querySelector(".result-icon");
+
+        if (inp.value.trim() === "") {
+          icon.textContent = "•";
+          icon.classList.remove("correct", "wrong");
+        } else if (given === expected) {
+          icon.textContent = "✓";
+          icon.classList.add("correct");
+          icon.classList.remove("wrong");
+          correctCount++;
+        } else {
+          icon.textContent = "✗";
+          icon.classList.add("wrong");
+          icon.classList.remove("correct");
+        }
+      });
+
+      scoreBox.textContent = "You scored " + correctCount + " / 12";
+      const prevBest = getGameBestScore(currentSet, currentGame);
+      setGameBestScore(currentSet, currentGame, correctCount);
+      const newBest = getGameBestScore(currentSet, currentGame);
+
+      if (correctCount === QUESTIONS_PER_GAME) {
+        messageBox.textContent =
+          "Fantastic! You got 12 / 12. Mission complete! 🎉";
+        messageBox.className = "message success";
+        fireSmallConfetti();
+      } else if (correctCount > prevBest) {
+        messageBox.textContent =
+          "Great job! New personal best: " + newBest + " / 12 💪";
+        messageBox.className = "message success";
+      } else {
+        messageBox.textContent =
+          "Check the ✗ marks and try again. You can do it! 😊";
+        messageBox.className = "message error";
+      }
+
+      const total = getSetTotalScore(currentSet);
+      const playerName = loadPlayerName() || "-";
+      currentSetLabel.textContent =
+        "Player: " + playerName + " · Total score for this set: " + total + " / 132";
+
+      const completedGames = getCompletedGamesCount(currentSet);
+      if (completedGames === GAMES_PER_SET) {
+        setProgressBox.textContent =
+          "Awesome! You have completed all 11 games in Set " + currentSet + " 🎉";
+        fireBigConfetti();
+      } else {
+        setProgressBox.textContent =
+          "Perfect scores in " +
+          completedGames +
+          " / " +
+          GAMES_PER_SET +
+          " games. Keep going! ✨";
+      }
+
+      buildGameButtonsForSet(currentSet);
+    }
+
+    // -------- EVENT LISTENERS --------
+    startWithNameBtn.addEventListener("click", () => {
+      const name = playerNameInput.value.trim();
+      if (!name) {
+        alert("Please enter your name before you start.");
+        return;
+      }
+      savePlayerName(name);
+      showMainViews();
+    });
+
+    changeNameBtn.addEventListener("click", () => {
+      const current = loadPlayerName() || "";
+      playerNameInput.value = current;
+      showNameView();
+    });
+
+    backToSetSelectBtn.addEventListener("click", openSetSelect);
+    backToChecklistBtn.addEventListener("click", () => {
+      openSetChecklist(currentSet);
+    });
+    checkBtn.addEventListener("click", checkAnswers);
+    resetBtn.addEventListener("click", () => {
+      generateQuestions();
+      renderQuestions();
+      clearGameFeedback();
+    });
+
+    // init
+    (function init() {
+      const name = loadPlayerName();
+      if (name) {
+        showMainViews();
+      } else {
+        showNameView();
+      }
+    })();
+  </script>
+</body>
+</html>
